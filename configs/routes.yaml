@@ -1,0 +1,37 @@
+services:
+  auth:
+    base_url: "${AUTH_URL}"
+  products:
+    base_url: "${PRODUCTS_URL}"
+
+routes:
+  - prefix: "/api/auth/"
+    service: "auth"
+    auth_required: false
+    timeout_ms: 3000
+    rules:
+      - { method: "POST", in: "/api/auth/register", out: "/register" }
+      - { method: "POST", in: "/api/auth/login",    out: "/login" }
+
+  - prefix: "/api/users/"
+    service: "auth"
+    auth_required: true
+    timeout_ms: 2000
+    rules:
+      - { method: "GET", in: "/api/users/me", out: "/me" }
+
+  - prefix: "/api/products/"
+    service: "products"
+    auth_required: true
+    timeout_ms: 2000
+    rules:
+      # список: прокидываем оригинальный query (limit, offset)
+      - { method: "GET",  in: "/api/products",     out: "/list" }
+      # создать
+      - { method: "POST", in: "/api/products",     out: "/create" }
+      # получить по id
+      - { method: "GET",  in: "/api/products/:id", out: "/product?id=:id" }
+      # обновить (нужен роут в product-service: PUT /update/:id)
+      - { method: "PUT",  in: "/api/products/:id", out: "/update/:id" }
+      # удалить (нужен роут в product-service: DELETE /delete/:id)
+      - { method: "DELETE", in: "/api/products/:id", out: "/delete/:id" }
